@@ -1,0 +1,11 @@
+C:\Users\erina\antigravity\calc\CalcEngine\bin\Debug\net8.0\CalcEngine.deps.json
+C:\Users\erina\antigravity\calc\CalcEngine\bin\Debug\net8.0\CalcEngine.dll
+C:\Users\erina\antigravity\calc\CalcEngine\bin\Debug\net8.0\CalcEngine.pdb
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.AssemblyInfoInputs.cache
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.AssemblyInfo.cs
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.csproj.CoreCompileInputs.cache
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.dll
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\refint\CalcEngine.dll
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\CalcEngine.pdb
+C:\Users\erina\antigravity\calc\CalcEngine\obj\Debug\net8.0\ref\CalcEngine.dll
