@@ -19,6 +19,7 @@ namespace CalcEngine
             registry.Register("ROUND", Round);
             registry.Register("ABS", Abs);
             registry.Register("SQRT", Sqrt);
+            registry.Register("MOD", Mod);
 
             // Logic
             registry.Register("IF", If);
@@ -34,6 +35,7 @@ namespace CalcEngine
             registry.Register("LEN", Len);
             registry.Register("UPPER", Upper);
             registry.Register("LOWER", Lower);
+            registry.Register("TRIM", Trim);
         }
 
         private static CalcError? CheckErrors(object[] args)
@@ -190,6 +192,19 @@ namespace CalcEngine
             return Math.Sqrt(val);
         }
 
+        private static object Mod(object[] args)
+        {
+            if (CheckErrors(args) is CalcError err) return err;
+            if (args.Length != 2) return CalcError.Value;
+            if (!Evaluator.TryConvertToDouble(args[0], out double n)) return CalcError.Value;
+            if (!Evaluator.TryConvertToDouble(args[1], out double d)) return CalcError.Value;
+            if (d == 0) return CalcError.Div0;
+
+            // Excel MOD behavior: Result has same sign as divisor
+            // Formula: n - d * INT(n/d)
+            return n - d * Math.Floor(n / d);
+        }
+
         private static object If(object[] args)
         {
             // IF evaluates condition first.
@@ -314,6 +329,13 @@ namespace CalcEngine
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 1) return CalcError.Value;
             return args[0].ToString().ToLower();
+        }
+
+        private static object Trim(object[] args)
+        {
+            if (CheckErrors(args) is CalcError err) return err;
+            if (args.Length != 1) return CalcError.Value;
+            return args[0].ToString().Trim();
         }
     }
 }

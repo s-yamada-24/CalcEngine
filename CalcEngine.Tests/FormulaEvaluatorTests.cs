@@ -125,5 +125,35 @@ namespace CalcEngine.Tests
             Assert.Equal(1.0, evaluator.Evaluate("=COUNTIF(A1:A3, \">15\")"));
             Assert.Equal(20.0, evaluator.Evaluate("=SUMIF(A1:A3, 10)")); // 10 + 10 = 20
         }
+
+        [Fact]
+        public void TestModAndTrim()
+        {
+            var table = new VirtualTable();
+            table.SetValue("A1", "  Hello World  ");
+            table.SetValue("N1", 3);
+            table.SetValue("N2", 2);
+            table.SetValue("N3", -3);
+            table.SetValue("N4", -2);
+            var evaluator = new FormulaEvaluator(table);
+
+            // TRIM
+            Assert.Equal("Hello World", evaluator.Evaluate("=TRIM(A1)"));
+
+            // MOD
+            // 3 % 2 = 1
+            Assert.Equal(1.0, evaluator.Evaluate("=MOD(N1, N2)"));
+            // -3 % 2 = 1 (Excel behavior)
+            Assert.Equal(1.0, evaluator.Evaluate("=MOD(N3, N2)"));
+            // 3 % -2 = -1 (Excel behavior)
+            Assert.Equal(-1.0, evaluator.Evaluate("=MOD(N1, N4)"));
+            // -3 % -2 = -1
+            Assert.Equal(-1.0, evaluator.Evaluate("=MOD(N3, N4)"));
+            
+            // MOD zero division
+            var err = evaluator.Evaluate("=MOD(N1, 0)");
+            Assert.IsType<CalcError>(err);
+            Assert.Equal(CalcError.Div0.Code, err.ToString());
+        }
     }
 }
