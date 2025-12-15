@@ -33,7 +33,8 @@ namespace CalcEngine
         private object GetCellValue(string address)
         {
             var val = _table.GetValue(address);
-            if (val == null) return CalcError.Ref; // Return #REF! for missing cells
+            // Return null for missing cells (treated as 0 in numeric context, "" in string context)
+            if (val == null) return null;
             if (val is CalcError) return val;
             return val;
         }
@@ -56,18 +57,10 @@ namespace CalcEngine
                     for (int c = minCol; c <= maxCol; c++)
                     {
                         var addr = GetAddress(c, r);
-                        // For ranges, we usually want values. 
-                        // If a cell is missing in a range, standard Excel behavior varies by function.
-                        // But strictly following "missing = #REF!" might be annoying for ranges.
-                        // However, to be consistent with GetCellValue:
                         var val = _table.GetValue(addr);
-                        // In ranges, empty cells are often treated as 0 or ignored by functions like SUM.
-                        // But if we strictly return #REF!, SUM(#REF!) becomes #REF!.
-                        // Let's return the value (or null) and let functions handle it.
-                        // Wait, user said "If non-existent address is specified... output reference error".
-                        // So we should probably include #REF! in the list if it's missing.
-                        if (val == null) cells.Add(CalcError.Ref);
-                        else cells.Add(val);
+                        // For ranges, empty/missing cells are treated as null
+                        // Functions like SUM will treat null as 0, string functions as ""
+                        cells.Add(val);
                     }
                 }
             }

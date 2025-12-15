@@ -266,14 +266,15 @@ namespace CalcEngine
         private static object Concatenate(object[] args)
         {
             if (CheckErrors(args) is CalcError err) return err;
-            return string.Concat(args);
+            // Convert each arg to string, treating null as empty string
+            return string.Concat(args.Select(a => a?.ToString() ?? ""));
         }
 
         private static object Left(object[] args)
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 2) return CalcError.Value;
-            string s = args[0].ToString();
+            string s = args[0]?.ToString() ?? "";
             if (!Evaluator.TryConvertToDouble(args[1], out double lenD)) return CalcError.Value;
             int len = (int)lenD;
             if (len < 0) return CalcError.Value;
@@ -285,7 +286,7 @@ namespace CalcEngine
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 2) return CalcError.Value;
-            string s = args[0].ToString();
+            string s = args[0]?.ToString() ?? "";
             if (!Evaluator.TryConvertToDouble(args[1], out double lenD)) return CalcError.Value;
             int len = (int)lenD;
             if (len < 0) return CalcError.Value;
@@ -297,14 +298,16 @@ namespace CalcEngine
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 3) return CalcError.Value;
-            string s = args[0].ToString();
+            string s = args[0]?.ToString() ?? "";
             if (!Evaluator.TryConvertToDouble(args[1], out double startD)) return CalcError.Value;
             if (!Evaluator.TryConvertToDouble(args[2], out double lenD)) return CalcError.Value;
             
             int start = (int)startD - 1; 
             int len = (int)lenD;
             
-            if (start < 0) start = 0; // Excel behavior might differ but this is safe
+            // If length is negative or zero, return empty string
+            if (len <= 0) return "";
+            if (start < 0) start = 0;
             if (start >= s.Length) return "";
             if (start + len > s.Length) len = s.Length - start;
             return s.Substring(start, len);
@@ -314,28 +317,32 @@ namespace CalcEngine
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 1) return CalcError.Value;
-            return (double)args[0].ToString().Length;
+            string s = args[0]?.ToString() ?? "";
+            return (double)s.Length;
         }
 
         private static object Upper(object[] args)
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 1) return CalcError.Value;
-            return args[0].ToString().ToUpper();
+            string s = args[0]?.ToString() ?? "";
+            return s.ToUpper();
         }
 
         private static object Lower(object[] args)
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 1) return CalcError.Value;
-            return args[0].ToString().ToLower();
+            string s = args[0]?.ToString() ?? "";
+            return s.ToLower();
         }
 
         private static object Trim(object[] args)
         {
             if (CheckErrors(args) is CalcError err) return err;
             if (args.Length != 1) return CalcError.Value;
-            return args[0].ToString().Trim();
+            string s = args[0]?.ToString() ?? "";
+            return s.Trim();
         }
     }
 }
