@@ -33,8 +33,8 @@ namespace CalcEngine
         private object GetCellValue(string address)
         {
             var val = _table.GetValue(address);
-            // Return null for missing cells (treated as 0 in numeric context, "" in string context)
-            if (val == null) return null;
+            // Return empty string for missing cells (treated as 0 in numeric context, "" in string context)
+            if (val == null) return "";
             if (val is CalcError) return val;
             return val;
         }
@@ -58,9 +58,9 @@ namespace CalcEngine
                     {
                         var addr = GetAddress(c, r);
                         var val = _table.GetValue(addr);
-                        // For ranges, empty/missing cells are treated as null
-                        // Functions like SUM will treat null as 0, string functions as ""
-                        cells.Add(val);
+                        // For ranges, empty/missing cells are treated as empty string
+                        // Functions like SUM will treat "" as 0, string functions as ""
+                        cells.Add(val ?? "");
                     }
                 }
             }
@@ -116,28 +116,40 @@ namespace CalcEngine
                 return Convert.ToString(left) + Convert.ToString(right);
             }
 
-            // Numeric operations
-            if (!TryConvertToDouble(left, out double l)) return CalcError.Value;
-            if (!TryConvertToDouble(right, out double r)) return CalcError.Value;
+            // Numeric operations (require conversion)
+            if (node.Op == TokenType.Plus || 
+                node.Op == TokenType.Minus || 
+                node.Op == TokenType.Multiply || 
+                node.Op == TokenType.Divide || 
+                node.Op == TokenType.Power)
+            {
+                if (!TryConvertToDouble(left, out double l)) return CalcError.Value;
+                if (!TryConvertToDouble(right, out double r)) return CalcError.Value;
 
+                switch (node.Op)
+                {
+                    case TokenType.Plus: return l + r;
+                    case TokenType.Minus: return l - r;
+                    case TokenType.Multiply: return l * r;
+                    case TokenType.Divide:
+                        if (r == 0) return CalcError.Div0;
+                        return l / r;
+                    case TokenType.Power: return Math.Pow(l, r);
+                }
+            }
+
+            // Comparison operations (handle mixed types in Compare)
             switch (node.Op)
             {
-                case TokenType.Plus: return l + r;
-                case TokenType.Minus: return l - r;
-                case TokenType.Multiply: return l * r;
-                case TokenType.Divide: 
-                    if (r == 0) return CalcError.Div0;
-                    return l / r;
-                case TokenType.Power: return Math.Pow(l, r);
-                // Comparison
                 case TokenType.Equal: return Compare(left, right) == 0;
                 case TokenType.NotEqual: return Compare(left, right) != 0;
                 case TokenType.LessThan: return Compare(left, right) < 0;
                 case TokenType.GreaterThan: return Compare(left, right) > 0;
                 case TokenType.LessThanOrEqual: return Compare(left, right) <= 0;
                 case TokenType.GreaterThanOrEqual: return Compare(left, right) >= 0;
-                default: return CalcError.Value;
             }
+
+            return CalcError.Value;
         }
 
         private object EvaluateUnary(UnaryOpNode node)
@@ -185,6 +197,8 @@ namespace CalcEngine
             if (val is bool b) { result = b ? 1.0 : 0.0; return true; }
             if (val is string s)
             {
+                // Empty string is treated as 0 (Excel behavior)
+                if (string.IsNullOrEmpty(s)) { result = 0; return true; }
                 return double.TryParse(s, out result);
             }
             try

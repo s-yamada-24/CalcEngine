@@ -36,15 +36,17 @@ namespace CalcEngine.Tests
             var table = new VirtualTable();
             var evaluator = new FormulaEvaluator(table);
 
-            // Missing cell should return #REF!
+            // Missing cell should return empty string
             var result = evaluator.Evaluate("=A1");
-            Assert.IsType<CalcError>(result);
-            Assert.Equal(CalcError.Ref.Code, result.ToString());
+            Assert.Equal("", result);
 
-            // Error propagation
+            // In numeric context, empty string is treated as 0
             var result2 = evaluator.Evaluate("=A1 + 1");
-            Assert.IsType<CalcError>(result2);
-            Assert.Equal(CalcError.Ref.Code, result2.ToString());
+            Assert.Equal(1.0, result2);
+            
+            // In string context, empty string remains empty
+            var result3 = evaluator.Evaluate("=A1 & \"test\"");
+            Assert.Equal("test", result3);
         }
 
         [Fact]
@@ -154,6 +156,68 @@ namespace CalcEngine.Tests
             var err = evaluator.Evaluate("=MOD(N1, 0)");
             Assert.IsType<CalcError>(err);
             Assert.Equal(CalcError.Div0.Code, err.ToString());
+        }
+
+        [Fact]
+        public void TestStringFunctionsWithEmptyString()
+        {
+            var table = new VirtualTable();
+            table.SetValue("A1", "");
+            table.SetValue("A2", "Hello");
+            var evaluator = new FormulaEvaluator(table);
+
+            // LEFT with empty string
+            Assert.Equal("", evaluator.Evaluate("=LEFT(A1, 5)"));
+            
+            // RIGHT with empty string
+            Assert.Equal("", evaluator.Evaluate("=RIGHT(A1, 3)"));
+            
+            // MID with empty string
+            Assert.Equal("", evaluator.Evaluate("=MID(A1, 1, 5)"));
+            
+            // LEN with empty string
+            Assert.Equal(0.0, evaluator.Evaluate("=LEN(A1)"));
+            
+            // UPPER with empty string
+            Assert.Equal("", evaluator.Evaluate("=UPPER(A1)"));
+            
+            // LOWER with empty string
+            Assert.Equal("", evaluator.Evaluate("=LOWER(A1)"));
+            
+            // TRIM with empty string
+            Assert.Equal("", evaluator.Evaluate("=TRIM(A1)"));
+            
+            // CONCATENATE with empty string
+            Assert.Equal("Hello", evaluator.Evaluate("=CONCATENATE(A1, A2)"));
+        }
+
+        [Fact]
+        public void TestStringFunctionsWithMissingCell()
+        {
+            var table = new VirtualTable();
+            var evaluator = new FormulaEvaluator(table);
+
+            // Missing cell in string functions should be treated as empty string
+            Assert.Equal("", evaluator.Evaluate("=LEFT(B1, 5)"));
+            Assert.Equal("", evaluator.Evaluate("=RIGHT(B1, 3)"));
+            Assert.Equal("", evaluator.Evaluate("=MID(B1, 1, 5)"));
+            Assert.Equal(0.0, evaluator.Evaluate("=LEN(B1)"));
+            Assert.Equal("", evaluator.Evaluate("=UPPER(B1)"));
+            Assert.Equal("", evaluator.Evaluate("=LOWER(B1)"));
+            Assert.Equal("", evaluator.Evaluate("=TRIM(B1)"));
+        }
+
+        [Fact]
+        public void TestSumWithMissingCells()
+        {
+            var table = new VirtualTable();
+            table.SetValue("A1", 10);
+            // A2 is missing
+            table.SetValue("A3", 20);
+            var evaluator = new FormulaEvaluator(table);
+
+            // SUM should treat missing cells as 0
+            Assert.Equal(30.0, evaluator.Evaluate("=SUM(A1:A3)"));
         }
     }
 }
